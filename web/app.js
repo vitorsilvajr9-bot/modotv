@@ -20,6 +20,8 @@ const S = {
   player: null,
   ruins: new Set(store.get("ruins", [])),   // videos que nao tocam fora do YouTube
   livesEncerradas: new Set(),
+  bloqueados: new Set(),   // canais em que nada tocou nesta sessao
+  falhas: 0,
 };
 const canal = () => CANAIS[S.idx];
 
@@ -113,7 +115,13 @@ function criarPlayer(id, inicio) {
   });
 }
 
+let tVigia;
 async function tocar(id, inicio = 0) {
+  clearTimeout(tVigia);
+  const meu = S.token;
+  tVigia = setTimeout(() => {           // nao comecou: trata como bloqueado
+    if (meu === S.token && S.atual?.id === id) aoErro({ data: "tempo" });
+  }, 25000);
   if (!S.player) return criarPlayer(id, inicio);
   S.player.loadVideoById({ videoId: id, startSeconds: Math.floor(inicio) });
 }
@@ -123,6 +131,9 @@ function aoMudarEstado(e) {
     if (S.atual?.live) { S.livesEncerradas.add(S.atual.id); delete S.lives[canal().numero]; }
     sintonizar(S.idx, { silencioso: true });   // fim do programa: volta para o que esta no ar
   } else if (e.data === YT.PlayerState.PLAYING) {
+    clearTimeout(tVigia);
+    S.falhas = 0;
+    S.bloqueados.delete(canal().numero);
     aviso(null);
     semLegenda();
   }
@@ -139,10 +150,33 @@ function aoErro(e) {
   const a = S.atual;
   console.warn("Erro do player", e.data, a?.id);
   if (!a) return;
-  if (a.live) { S.livesEncerradas.add(a.id); return sintonizar(S.idx); }
+  if (a.live) { S.livesEncerradas.add(a.id); return sintonizar(S.idx, { silencioso: true }); }
   S.ruins.add(a.id);
   store.set("ruins", [...S.ruins].slice(-500));
+  S.falhas = (S.falhas || 0) + 1;
+  if (S.falhas >= 6 || !efetiva(canal().numero)?.length) return canalBloqueado(canal());
   pular();
+}
+
+/** Nenhum video do canal toca fora do YouTube: avisa e oferece abrir no YouTube. */
+function canalBloqueado(c) {
+  clearTimeout(tVigia);
+  S.atual = null;
+  try { S.player?.stopVideo(); } catch { /* */ }
+  const info = store.get("canais", []).find((x) => x.numero === c.numero);
+  const url = info ? `https://www.youtube.com/channel/${info.channelId}` : "https://www.youtube.com/";
+  S.bloqueados.add(c.numero);
+  mostrarBanner();
+  $("aviso").textContent = "";
+  const t = document.createElement("div");
+  t.textContent = `${c.nome} não permite assistir fora do YouTube.`;
+  const a = document.createElement("a");
+  a.href = url; a.target = "_blank"; a.rel = "noopener"; a.className = "btn-yt";
+  a.textContent = "▶ Assistir no YouTube";
+  $("aviso").append(t, a);
+  $("aviso").classList.remove("oculto");
+  S.bloqueados.add(c.numero);
+  desenharGuia();
 }
 
 // ------------------------------------------------------------------ sintonia
@@ -151,6 +185,8 @@ async function sintonizar(idx, { silencioso = false } = {}) {
   S.idx = ((idx % n) + n) % n;
   const c = canal();
   const meu = ++S.token;
+  S.falhas = 0;
+  aviso(null);
   store.set("canal", c.numero);
   if (diaDe() !== S.dia) await carregarDados();
   if (!silencioso) mostrarBanner({ carregando: true });
@@ -167,8 +203,10 @@ async function sintonizar(idx, { silencioso = false } = {}) {
   if (meu !== S.token) return;              // trocou de canal enquanto carregava
   const grade = efetiva(c.numero);
   if (!grade?.length) {
+    if (S.fonte !== "sem-fonte" && S.grades[c.numero]?.length) return canalBloqueado(c);
     S.atual = null;
-    S.player?.stopVideo?.();
+    try { S.player?.stopVideo(); } catch { /* */ }
+    mostrarBanner();
     aviso(S.fonte === "sem-fonte"
       ? "Sem conexão com a emissora e sem chave reserva configurada."
       : `${c.numero} ${c.nome}: sem programação no momento.`);
@@ -208,6 +246,7 @@ function mostrarBanner({ carregando = false } = {}) {
   const agora = $("b-agora"), seg = $("b-seguir");
   agora.textContent = ""; seg.textContent = "";
   if (carregando) agora.textContent = "Sintonizando...";
+  else if (!a) agora.textContent = S.bloqueados.has(c.numero) ? "Não toca fora do YouTube" : "";
   else if (a) {
     agora.append(a.live ? "" : "Agora: ", a.t);
     if (!a.live && a.inicio) {
@@ -261,7 +300,8 @@ function desenharGuia() {
     const nome = document.createElement("span"); nome.textContent = c.nome;
     const sub = document.createElement("small");
     const live = S.lives[c.numero];
-    if (c.ao_vivo && live && !S.livesEncerradas.has(live.id)) sub.textContent = "🔴 " + live.t;
+    if (S.bloqueados.has(c.numero)) sub.textContent = "⛔ só no YouTube";
+    else if (c.ao_vivo && live && !S.livesEncerradas.has(live.id)) sub.textContent = "🔴 " + live.t;
     else {
       const g = efetiva(c.numero), p = g?.length && noAr(g, S.dia);
       sub.textContent = p ? g[p.i][1] : "—";
