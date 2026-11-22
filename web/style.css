@@ -1,0 +1,65 @@
+:root { --acc:#e5484d; --sub:#a6adbb; --card:rgba(16,18,24,.88); }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { margin:0; height:100%; background:#000; color:#f2f4f8; overflow:hidden;
+  font:16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; user-select:none; }
+#tela { position:fixed; inset:0; }
+#player, #player iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+#capa { position:absolute; inset:0; z-index:2; cursor:none; }
+#capa.mouse { cursor:default; }
+.oculto { display:none !important; }
+
+#banner { position:absolute; z-index:3; top:max(18px, env(safe-area-inset-top)); left:18px;
+  max-width:min(720px, 88vw); background:var(--card); border-radius:14px; padding:12px 16px;
+  box-shadow:0 6px 30px rgba(0,0,0,.5); }
+.b-topo { display:flex; align-items:center; gap:10px; font-size:22px; font-weight:700; }
+#b-num { color:var(--acc); min-width:28px; }
+#b-agora { margin-top:4px; font-size:17px; }
+#b-agora small, #b-seguir small { color:var(--sub); }
+#b-seguir { margin-top:2px; font-size:14px; color:var(--sub); }
+.vivo { background:var(--acc); color:#fff; font-size:12px; font-weight:800; padding:2px 7px; border-radius:5px; }
+
+#digitos { position:absolute; z-index:3; top:18px; right:22px; font-size:48px; font-weight:800;
+  background:var(--card); padding:4px 18px; border-radius:12px; color:var(--acc); }
+#aviso { position:absolute; z-index:3; left:50%; top:50%; transform:translate(-50%,-50%);
+  background:var(--card); padding:14px 22px; border-radius:12px; font-size:18px; text-align:center; max-width:80vw; }
+
+#controles { position:absolute; z-index:4; left:50%; transform:translateX(-50%);
+  bottom:max(16px, env(safe-area-inset-bottom)); display:flex; gap:6px; align-items:center;
+  background:var(--card); padding:8px; border-radius:16px; flex-wrap:wrap; justify-content:center;
+  max-width:96vw; }
+#controles button, #guia button, #btn-ligar { background:#2a2f3b; color:#fff; border:0; border-radius:11px;
+  font:inherit; font-weight:600; font-size:16px; padding:10px 13px; cursor:pointer; }
+#controles button:active, #guia button:active { transform:scale(.95); background:#3a4152; }
+#controles .acc, #btn-ligar { background:var(--acc); }
+.sep { width:1px; height:28px; background:#3a3f4c; margin:0 2px; }
+
+#guia { position:absolute; z-index:5; top:0; right:0; bottom:0; width:min(400px, 92vw);
+  background:rgba(12,14,19,.96); overflow-y:auto; padding:12px 12px 40px; }
+.g-cab { display:flex; justify-content:space-between; align-items:center; margin:8px 2px; font-size:15px; color:var(--sub);
+  text-transform:uppercase; letter-spacing:.05em; }
+.g-cat { color:var(--sub); font-size:12px; margin:12px 4px 4px; text-transform:uppercase; letter-spacing:.06em; }
+.g-canal { display:flex; gap:10px; align-items:center; width:100%; text-align:left; margin:3px 0;
+  background:#1c2029 !important; padding:10px 12px !important; }
+.g-canal.on { outline:2px solid var(--acc); }
+.g-canal b { color:var(--acc); min-width:26px; }
+.g-canal .g-txt { display:flex; flex-direction:column; min-width:0; }
+.g-canal small { color:var(--sub); font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.g-prog { display:flex; gap:10px; padding:8px 4px; border-bottom:1px solid #242833; font-size:14px; }
+.g-prog span:first-child { color:var(--sub); min-width:46px; }
+#g-fonte { color:var(--sub); font-size:12px; margin-top:14px; }
+
+#ligar { position:absolute; inset:0; z-index:9; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:22px; background:radial-gradient(circle at 50% 40%, #1d2230, #000 70%); }
+#ligar .logo { font-size:42px; font-weight:800; letter-spacing:.02em; }
+#btn-ligar { font-size:22px; padding:16px 34px; border-radius:16px; }
+#ligar .dica { color:var(--sub); font-size:13px; padding:0 20px; text-align:center; }
+
+@media (max-width: 640px) {
+  #controles button { padding:9px 10px; font-size:15px; }
+  .b-topo { font-size:19px; } #b-agora { font-size:15px; }
+}
+
+@media (min-width: 900px) {
+  #tela.guia-aberta #controles { left:calc((100% - min(400px, 92vw)) / 2); }
+  #tela.guia-aberta #banner { max-width:calc(100% - 440px); }
+}
