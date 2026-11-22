@@ -23,7 +23,7 @@ export const CANAIS = [
   { numero: 5, nome: "Futebol Antigo", categoria: "Esportes", handle: "@futebolantigo6", modo: "acervo", ao_vivo: false, min_minutos: 5, max_videos: 1500 },
   { numero: 6, nome: "Samuca TV", categoria: "Esportes", busca: "Samuca TV", modo: "misto", ao_vivo: true, min_minutos: 3, max_videos: 600 },
   // ---------- FILMES ----------
-  { numero: 10, nome: "Adrenalina TV", categoria: "Filmes", busca: "Adrenalina Freezone", modo: "acervo", ao_vivo: true, min_minutos: 40, max_videos: 1500 },
+  { numero: 10, nome: "Adrenalina TV", categoria: "Filmes", handle: "@AdrenalinaPuraTVBR", modo: "acervo", ao_vivo: true, min_minutos: 40, max_videos: 1500 },
   // ---------- POP ----------
   { numero: 20, nome: "Ei Nerd", categoria: "Pop", busca: "Einerd", modo: "misto", ao_vivo: false, min_minutos: 4, max_videos: 600 },
   { numero: 21, nome: "Nerds de Negócios", categoria: "Pop", busca: "Nerd de Negocios", modo: "misto", ao_vivo: false, min_minutos: 4, max_videos: 600 },
