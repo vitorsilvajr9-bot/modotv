@@ -1,0 +1,51 @@
+name: Emissora CanalTV
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # a cada 15 min: lives + grade do dia
+  workflow_dispatch:          # botao "Run workflow" para rodar na hora
+  push:
+    branches: [main, principal]
+    paths: ["web/**", "emissora/**", ".github/workflows/**"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: emissora
+  cancel-in-progress: false
+
+jobs:
+  emissora:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Gerar grade e lives
+        env:
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+        run: node emissora/gerar.mjs
+
+      - name: Salvar dados no repositorio
+        run: |
+          git config user.name "emissora-canaltv"
+          git config user.email "emissora@users.noreply.github.com"
+          git add web/data
+          git diff --cached --quiet || git commit -m "Atualiza grade/lives [skip ci]"
+          git push || true
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4
