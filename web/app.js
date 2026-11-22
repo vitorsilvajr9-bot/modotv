@@ -105,7 +105,7 @@ function criarPlayer(id, inicio) {
       S.player = new YT.Player("player", {
         width: "100%", height: "100%", ...(id ? { videoId: id } : {}),
         playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, playsinline: 1, rel: 0,
-          iv_load_policy: 3, start: Math.floor(inicio), origin: location.origin },
+          iv_load_policy: 3, cc_load_policy: 0, start: Math.floor(inicio), origin: location.origin },
         events: { onReady: () => ok(), onStateChange: aoMudarEstado, onError: aoErro },
       });
     };
@@ -124,7 +124,14 @@ function aoMudarEstado(e) {
     sintonizar(S.idx, { silencioso: true });   // fim do programa: volta para o que esta no ar
   } else if (e.data === YT.PlayerState.PLAYING) {
     aviso(null);
+    semLegenda();
   }
+}
+
+/** Desliga a legenda automatica que o YouTube liga sozinho. */
+function semLegenda() {
+  try { S.player.unloadModule("captions"); } catch { /* sem legenda */ }
+  try { S.player.unloadModule("cc"); } catch { /* sem legenda */ }
 }
 
 function aoErro(e) {
