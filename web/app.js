@@ -158,13 +158,22 @@ function aoErro(e) {
   pular();
 }
 
+/** Melhor link no YouTube: a live, senao o programa no ar (no minuto certo), senao /live do canal. */
+function linkYouTube(c) {
+  const live = S.lives[c.numero];
+  if (live) return `https://www.youtube.com/watch?v=${live.id}`;
+  const g = S.grades[c.numero], p = g?.length && noAr(g, S.dia);
+  if (p) return `https://www.youtube.com/watch?v=${g[p.i][0]}&t=${Math.floor(p.off)}s`;
+  const info = store.get("canais", []).find((x) => x.numero === c.numero);
+  return info ? `https://www.youtube.com/channel/${info.channelId}/live` : "https://www.youtube.com/";
+}
+
 /** Nenhum video do canal toca fora do YouTube: avisa e oferece abrir no YouTube. */
 function canalBloqueado(c) {
   clearTimeout(tVigia);
   S.atual = null;
   try { S.player?.stopVideo(); } catch { /* */ }
-  const info = store.get("canais", []).find((x) => x.numero === c.numero);
-  const url = info ? `https://www.youtube.com/channel/${info.channelId}` : "https://www.youtube.com/";
+  const url = linkYouTube(c);
   S.bloqueados.add(c.numero);
   mostrarBanner();
   $("aviso").textContent = "";
@@ -172,7 +181,7 @@ function canalBloqueado(c) {
   t.textContent = `${c.nome} não permite assistir fora do YouTube.`;
   const a = document.createElement("a");
   a.href = url; a.target = "_blank"; a.rel = "noopener"; a.className = "btn-yt";
-  a.textContent = "▶ Assistir no YouTube";
+  a.textContent = S.lives[c.numero] ? "🔴 Assistir ao vivo no YouTube" : "▶ Assistir no YouTube";
   $("aviso").append(t, a);
   $("aviso").classList.remove("oculto");
   S.bloqueados.add(c.numero);
